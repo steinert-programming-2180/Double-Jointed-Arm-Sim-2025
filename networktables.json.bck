@@ -90,7 +90,39 @@
   {
     "name": "/Preferences/Arm Current Load",
     "type": "double",
-    "value": 3.130170743853158,
+    "value": 3.1272625696641168,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/WristPosition",
+    "type": "double",
+    "value": 90.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Wrist_P",
+    "type": "double",
+    "value": 4.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Wrist_I",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Wrist_D",
+    "type": "double",
+    "value": 0.5,
     "properties": {
       "persistent": true
     }

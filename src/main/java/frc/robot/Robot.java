@@ -31,10 +31,16 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     if (m_joystick.getCircleButton()) {
       // Here, we run PID control like normal.
-      m_arm.reachSetpoint();
+      m_arm.reachArmSetpoint();
     } else {
       // Otherwise, we disable the motor.
       m_arm.stopArm();
+    }
+
+    if (m_joystick.getTriangleButton()) {
+      m_arm.reachWristSetpoint();
+    } else {
+      m_arm.stopWrist();
     }
     
     if (m_joystick.getL1Button()) {
