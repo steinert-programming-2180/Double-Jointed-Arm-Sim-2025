@@ -32,13 +32,18 @@ public class Robot extends TimedRobot {
     if (m_joystick.getCircleButton()) {
       // Here, we run PID control like normal.
       m_arm.reachSetpoint();
-    } else if (m_joystick.getL1Button()) {
-      
-    } else if (m_joystick.getR1Button()) {
-
     } else {
       // Otherwise, we disable the motor.
-      m_arm.stop();
+      m_arm.stopArm();
+    }
+    
+    if (m_joystick.getL1Button()) {
+      m_arm.retractArm();
+    } else if (m_joystick.getR1Button()) {
+      m_arm.extendArm();
+    } else {
+      // Otherwise, we disable the motor.
+      m_arm.stopTelescope();
     }
 
     
@@ -53,6 +58,7 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     // This just makes sure that our simulation code knows that the motor's off.
-    m_arm.stop();
+    m_arm.stopArm();
+    m_arm.stopTelescope();
   }
 }
