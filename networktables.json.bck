@@ -2,7 +2,7 @@
   {
     "name": "/Preferences/ArmPosition",
     "type": "double",
-    "value": 135.0,
+    "value": 105.0,
     "properties": {
       "persistent": true
     }
@@ -90,7 +90,7 @@
   {
     "name": "/Preferences/Arm Current Load",
     "type": "double",
-    "value": 3.1272625696641168,
+    "value": 6.219014184878705,
     "properties": {
       "persistent": true
     }
@@ -98,7 +98,7 @@
   {
     "name": "/Preferences/WristPosition",
     "type": "double",
-    "value": 90.0,
+    "value": 97.0,
     "properties": {
       "persistent": true
     }

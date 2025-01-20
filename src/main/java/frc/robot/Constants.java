@@ -57,14 +57,14 @@ public class Constants {
 
   public static final double kArmReduction = 200;
   public static final double kTelescopeReduction = 15.60;
-  public static final double kArmMass = Units.lbsToKilograms(13.715); // Kilograms
+  public static final double kArmMass = Units.lbsToKilograms(23.715); // Kilograms
   public static final double kWristMass = Units.lbsToKilograms(10); // Kilograms
   public static final double kTelescopeDrumRadius = Units.inchesToMeters(0.5);
   public static final double kArmLength = Units.inchesToMeters(28.25);
   public static final double kMinAngleRads = Units.degreesToRadians(-75);
   public static final double kMaxAngleRads = Units.degreesToRadians(255);
   public static final double kWristReduction = 20.0;
-  public static final double kWristLength = Units.inchesToMeters(22);
+  public static final double kWristLength = Units.inchesToMeters(15);
   public static final double kWristMinAngleRads = Units.degreesToRadians(-90);
   public static final double kWristMaxAngleRads = Units.degreesToRadians(180);
 
@@ -74,4 +74,24 @@ public class Constants {
   public static final double kArmEncoderDistPerPulse = 2.0 * Math.PI / 4096;
   public static final double kTelescopeEncoderDistPerPulse = 2.0 * kTelescopeDrumRadius / 4096;
   public static final double kWristEncoderDistPerPulse = 2.0 * Math.PI / 4096;
+
+  // position presets
+  public static final double armStartingPos = 215.0;
+  public static final double wristStartingPos = 155.0;
+  public static final double teleStartingPos = Units.metersToInches(0.72);
+
+  public static final double armL1Pos = 150.0;
+  public static final double wristL1Pos = 90.0;
+
+  public static final double armL2Pos = 135.0;
+  public static final double wristL2Pos = 85.0;
+
+  public static final double armL3Pos = 120.0;
+  public static final double wristL3Pos = 90.0;
+  public static final double teleL3Pos = Units.metersToInches(0.97);
+
+  public static final double armL4Pos = 105.0;
+  public static final double wristL4Pos = 97.0;
+  public static final double teleL4Pos = Units.metersToInches(1.55);
+
 }

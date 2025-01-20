@@ -4,8 +4,11 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Preferences;
@@ -48,9 +51,9 @@ public class Arm implements AutoCloseable {
   private final DCMotor m_wristGearbox = DCMotor.getNeoVortex(1);
 
   // Standard classes for controlling our arm
-  private final PIDController m_controller = new PIDController(m_armKp, m_armKi, m_armKd);
-  private final PIDController m_teleController = new PIDController(m_teleKp, m_teleKi, m_teleKd);
-  private final PIDController m_wristController = new PIDController(m_wristKp, m_wristKi, m_wristKd);
+  private final ProfiledPIDController m_controller = new ProfiledPIDController(m_armKp, m_armKi, m_armKd, new TrapezoidProfile.Constraints(2, 5));
+  private final ProfiledPIDController m_teleController = new ProfiledPIDController(m_teleKp, m_teleKi, m_teleKd, new TrapezoidProfile.Constraints(2, 5));
+  private final ProfiledPIDController m_wristController = new ProfiledPIDController(m_wristKp, m_wristKi, m_wristKd, new TrapezoidProfile.Constraints(2, 5));
 
   private final Encoder m_encoder =
       new Encoder(Constants.kEncoderAChannel, Constants.kEncoderBChannel);
@@ -77,7 +80,7 @@ public class Arm implements AutoCloseable {
           true,
           0,
           Constants.kArmEncoderDistPerPulse,
-          0.0 // Add noise with a std-dev of 1 tick
+          VecBuilder.fill(Constants.kArmEncoderDistPerPulse).get(0) // Add noise with a std-dev of 1 tick
           );
 
   private final ElevatorSim telescopeArm = 
@@ -101,10 +104,10 @@ public class Arm implements AutoCloseable {
           Constants.kWristLength,
           Constants.kWristMinAngleRads,
           Constants.kWristMaxAngleRads,
-          true,
+          false,
           0,
           Constants.kWristEncoderDistPerPulse,
-          0.0
+          VecBuilder.fill(Constants.kArmEncoderDistPerPulse).get(0)
       );
 
   private final EncoderSim m_encoderSim = new EncoderSim(m_encoder);
@@ -113,9 +116,38 @@ public class Arm implements AutoCloseable {
 
   // Create a Mechanism2d display of an Arm with a fixed ArmTower and moving Arm.
   private final Mechanism2d m_mech2d = new Mechanism2d(120, 120);
-  private final MechanismRoot2d m_armPivot = m_mech2d.getRoot("ArmPivot", 60, 30);
+  private final MechanismRoot2d m_armPivot = m_mech2d.getRoot("ArmPivot", 90, 23);
   private final MechanismLigament2d m_armTower =
-      m_armPivot.append(new MechanismLigament2d("ArmTower", 45, -90));
+      m_armPivot.append(new MechanismLigament2d("ArmTower", 20, -90));
+  private final MechanismRoot2d m_CoralStation = m_mech2d.getRoot("Human Player Station", 60, 37.5);
+  // private final MechanismLigament2d coralStation = 
+  //     m_CoralStation.append(new MechanismLigament2d("Coral Station", 15, 125));
+
+  // building the reef
+  private final double reefXCord = 45.0;
+  private final MechanismRoot2d m_reefRoot = m_mech2d.getRoot("Reef Base", reefXCord, 0);
+  private final MechanismLigament2d reefTower = 
+      m_reefRoot.append(new MechanismLigament2d("Reef Tower", 38.95 + 15.87, 90, 10, new Color8Bit(Color.kPurple)));
+  private final MechanismRoot2d m_reefL1Root = m_mech2d.getRoot("L1 Root", reefXCord, 18);
+  private final MechanismLigament2d m_L1 = 
+      m_reefL1Root.append(new MechanismLigament2d("L1", 11.23 + 1.625, 0, 5, new Color8Bit(Color.kPurple)));
+  private final MechanismRoot2d m_reefL2Root = m_mech2d.getRoot("L2 Root", reefXCord, 23.08);
+  private final MechanismLigament2d m_L2 = 
+      m_reefL2Root.append(new MechanismLigament2d("L2", 13.71, 35, 5, new Color8Bit(Color.kPurple)));
+  private final MechanismRoot2d m_reefL3Root = m_mech2d.getRoot("L3 Root", reefXCord, 38.95);
+  private final MechanismLigament2d m_L3 = 
+      m_reefL3Root.append(new MechanismLigament2d("L3", 13.71, 35, 5, new Color8Bit(Color.kPurple)));
+  private final MechanismRoot2d m_reefL4Root_A = m_mech2d.getRoot("L4a Root", reefXCord, 38.95 + 15.87);
+  private final MechanismLigament2d m_L4a = 
+      m_reefL4Root_A.append(new MechanismLigament2d("L4a", 14.23, 35, 10, new Color8Bit(Color.kPurple)));
+  private final MechanismLigament2d m_L4b = 
+      m_L4a.append(new MechanismLigament2d("L4b", 9, 90 - 35, 5, new Color8Bit(Color.kPurple)));
+
+  // drivetrain
+  private final MechanismLigament2d drivetrain = 
+      m_armTower.append(new MechanismLigament2d("Drivetrain", 26, -90, 20, new Color8Bit(Color.kCyan)));
+
+  // actual robot mechanisms
   private final MechanismLigament2d m_arm =
       m_armPivot.append(
           new MechanismLigament2d(
@@ -256,21 +288,33 @@ public class Arm implements AutoCloseable {
     }
   }
 
-  /** Run the control loop to reach and maintain the setpoint from the preferences. */
-  public void reachArmSetpoint() {
+  public void setState(double armSetpoint, double wristSetpoint, double teleSetpoint) {
     loadPreferences();
+    reachArmSetpoint(armSetpoint);
+    reachWristSetpoint(wristSetpoint);
+    reachTeleSetpoint(teleSetpoint);
+  }
+
+  /** Run the control loop to reach and maintain the setpoint from the preferences. */
+  public void reachArmSetpoint(double setpoint) {
     var pidOutput =
         m_controller.calculate(
-            m_encoder.getDistance(), Units.degreesToRadians(m_armSetpointDegrees));
+            m_encoder.getDistance(), Units.degreesToRadians(setpoint));
     m_motor.setVoltage(pidOutput);
   }
 
-  public void reachWristSetpoint() {
-    loadPreferences();
+  public void reachWristSetpoint(double setpoint) {
     var pidOutput = 
         m_wristController.calculate(
-          m_wristEncoder.getDistance(), Units.degreesToRadians(m_wristSetpointDegrees));
+          m_wristEncoder.getDistance(), Units.degreesToRadians(setpoint));
     m_wristMotor.setVoltage(pidOutput);
+  }
+
+  public void reachTeleSetpoint(double setpoint) {
+    var pidOutput = 
+        m_teleController.calculate(
+          m_teleEncoder.getDistance(), Units.inchesToMeters(setpoint));
+    m_TeleMotor.setVoltage(pidOutput);
   }
 
   public void extendArm() {
@@ -306,7 +350,6 @@ public class Arm implements AutoCloseable {
     m_encoder.close();
     m_mech2d.close();
     m_armPivot.close();
-    m_controller.close();
     m_arm.close();
   }
 }
