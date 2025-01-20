@@ -45,14 +45,13 @@ public class Arm implements AutoCloseable {
   private double m_wristKd = Constants.kDefaultWristKd;
   private double m_wristSetpointDegrees = Constants.kDefaultWristSetpointDegrees;
 
-  // The arm gearbox represents a gearbox containing two NEO motor.
-  private final DCMotor m_armGearbox = DCMotor.getNEO(2);
-  private final DCMotor m_telescopeGearbox = DCMotor.getNEO(1);
+  private final DCMotor m_armGearbox = DCMotor.getNeoVortex(2);
+  private final DCMotor m_telescopeGearbox = DCMotor.getNeoVortex(2);
   private final DCMotor m_wristGearbox = DCMotor.getNeoVortex(1);
 
   // Standard classes for controlling our arm
   private final ProfiledPIDController m_controller = new ProfiledPIDController(m_armKp, m_armKi, m_armKd, new TrapezoidProfile.Constraints(2, 5));
-  private final ProfiledPIDController m_teleController = new ProfiledPIDController(m_teleKp, m_teleKi, m_teleKd, new TrapezoidProfile.Constraints(2, 5));
+  private final ProfiledPIDController m_teleController = new ProfiledPIDController(m_teleKp, m_teleKi, m_teleKd, new TrapezoidProfile.Constraints(5, 10));
   private final ProfiledPIDController m_wristController = new ProfiledPIDController(m_wristKp, m_wristKi, m_wristKd, new TrapezoidProfile.Constraints(2, 5));
 
   private final Encoder m_encoder =
@@ -62,9 +61,11 @@ public class Arm implements AutoCloseable {
   private final Encoder m_wristEncoder = 
       new Encoder(Constants.kWristEncoderAChannel, Constants.kWristEncoderBChannel);
 
-  private final PWMSparkFlex m_motor = new PWMSparkFlex(Constants.kMotorPort);
-  private final PWMSparkFlex m_TeleMotor = new PWMSparkFlex(Constants.kTeleMotorPort);
-  private final PWMSparkFlex m_wristMotor = new PWMSparkFlex(Constants.kWristMotorPort);
+  private final PWMSparkFlex m_motor1 = new PWMSparkFlex(Constants.kMotorPort);
+  private final PWMSparkFlex m_motor2 = new PWMSparkFlex(Constants.kMotorPort + 1);
+  private final PWMSparkFlex m_TeleMotor1 = new PWMSparkFlex(Constants.kMotorPort + 2);
+  private final PWMSparkFlex m_TeleMotor2 = new PWMSparkFlex(Constants.kMotorPort + 3);
+  private final PWMSparkFlex m_wristMotor = new PWMSparkFlex(Constants.kWristMotorPort + 4);
 
   // Simulation classes help us simulate what's going on, including gravity.
   // This arm sim represents an arm that can travel from -75 degrees (rotated down front)
@@ -93,7 +94,7 @@ public class Arm implements AutoCloseable {
           Constants.kTelescopeMax,
           true,
           Constants.kTelescopeMin,
-          0.0,
+          VecBuilder.fill(Constants.kTelescopeEncoderDistPerPulse).get(0),
           0);
   
   private final SingleJointedArmSim m_wristSim = 
@@ -177,6 +178,10 @@ public class Arm implements AutoCloseable {
 
     m_controller.setTolerance(m_armDeadband);
 
+    m_motor1.addFollower(m_motor2);
+    m_TeleMotor1.addFollower(m_TeleMotor2);
+    
+
     // Put Mechanism 2d to SmartDashboard
     SmartDashboard.putData("Arm Sim", m_mech2d);
     m_armTower.setColor(new Color8Bit(Color.kBlue));
@@ -202,8 +207,8 @@ public class Arm implements AutoCloseable {
   public void simulationPeriodic() {
     // In this method, we update our simulation of what our arm is doing
     // First, we set our "inputs" (voltages)
-    m_armSim.setInput(m_motor.get() * RobotController.getBatteryVoltage());
-    telescopeArm.setInput(m_TeleMotor.get() * RobotController.getBatteryVoltage());
+    m_armSim.setInput((m_motor1.get() + m_motor2.get()) * RobotController.getBatteryVoltage());
+    telescopeArm.setInput((m_TeleMotor1.get() + m_TeleMotor2.get()) * RobotController.getBatteryVoltage());
     m_wristSim.setInput(m_wristMotor.get() * RobotController.getBatteryVoltage());
 
     // Next, we update it. The standard loop time is 20ms.
@@ -289,10 +294,13 @@ public class Arm implements AutoCloseable {
   }
 
   public void setState(double armSetpoint, double wristSetpoint, double teleSetpoint) {
+
     loadPreferences();
+    
     reachArmSetpoint(armSetpoint);
     reachWristSetpoint(wristSetpoint);
     reachTeleSetpoint(teleSetpoint);
+    
   }
 
   /** Run the control loop to reach and maintain the setpoint from the preferences. */
@@ -300,7 +308,7 @@ public class Arm implements AutoCloseable {
     var pidOutput =
         m_controller.calculate(
             m_encoder.getDistance(), Units.degreesToRadians(setpoint));
-    m_motor.setVoltage(pidOutput);
+    m_motor1.setVoltage(pidOutput);
   }
 
   public void reachWristSetpoint(double setpoint) {
@@ -314,14 +322,15 @@ public class Arm implements AutoCloseable {
     var pidOutput = 
         m_teleController.calculate(
           m_teleEncoder.getDistance(), Units.inchesToMeters(setpoint));
-    m_TeleMotor.setVoltage(pidOutput);
+    m_TeleMotor1.setVoltage(pidOutput);
+
   }
 
   public void extendArm() {
     loadPreferences();
     var pidOutput = m_teleController.calculate(
             m_teleEncoder.getDistance(), Constants.kTelescopeMax);
-    m_TeleMotor.setVoltage(pidOutput);
+    m_TeleMotor1.setVoltage(pidOutput);
     
   }
 
@@ -329,15 +338,15 @@ public class Arm implements AutoCloseable {
     loadPreferences();
     var pidOutput = m_teleController.calculate(
             m_teleEncoder.getDistance(), Constants.kTelescopeMin);
-    m_TeleMotor.setVoltage(pidOutput);
+    m_TeleMotor1.setVoltage(pidOutput);
   }
 
   public void stopArm() {
-    m_motor.set(0.0);
+    m_motor1.set(0.0);
   }
 
   public void stopTelescope() {
-    m_TeleMotor.set(0.0);
+    m_TeleMotor1.set(0.0);
   }
 
   public void stopWrist() {
@@ -346,7 +355,7 @@ public class Arm implements AutoCloseable {
 
   @Override
   public void close() {
-    m_motor.close();
+    m_motor1.close();
     m_encoder.close();
     m_mech2d.close();
     m_armPivot.close();

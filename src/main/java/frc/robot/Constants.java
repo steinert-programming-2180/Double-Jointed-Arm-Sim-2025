@@ -39,20 +39,20 @@ public class Constants {
   public static final double kTelescopeMax = Units.inchesToMeters(73.50);
 
   // The P gain for the PID controller that drives this arm.
-  public static final double kDefaultArmKp = 50.0;
+  public static final double kDefaultArmKp = 65.0;
   public static final double kDefaultArmKi = 0.0;
-  public static final double kDefaultArmKd = 0.0;
+  public static final double kDefaultArmKd = 2.0;
   public static final double kDefaultArmSetpointDegrees = 200.0;
   public static final double kArmDeadband = 1.0;
 
-  public static final double kDefaultTeleKp = 25.0;
+  public static final double kDefaultTeleKp = 150.0;
   public static final double kDefaultTeleKi = 0.0;
   public static final double kDefaultTeleKd = 0.0;
   public static final double kDefaultTeleSetpointMeters = kTelescopeMin;
 
-  public static final double kDefaultWristKp = 10.0;
+  public static final double kDefaultWristKp = 4.0;
   public static final double kDefaultWristKi = 0.0;
-  public static final double kDefaultWristKd = 0.0;
+  public static final double kDefaultWristKd = 0.5;
   public static final double kDefaultWristSetpointDegrees = 0.0;
 
   public static final double kArmReduction = 200;
