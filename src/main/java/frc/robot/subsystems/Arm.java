@@ -46,7 +46,7 @@ public class Arm implements AutoCloseable {
   private double m_wristSetpointDegrees = Constants.kDefaultWristSetpointDegrees;
 
   private final DCMotor m_armGearbox = DCMotor.getNeoVortex(2);
-  private final DCMotor m_telescopeGearbox = DCMotor.getNeoVortex(2);
+  private final DCMotor m_telescopeGearbox = DCMotor.getNEO(2);
   private final DCMotor m_wristGearbox = DCMotor.getNeoVortex(1);
 
   // Standard classes for controlling our arm
@@ -356,6 +356,7 @@ public class Arm implements AutoCloseable {
   @Override
   public void close() {
     m_motor1.close();
+    m_TeleMotor1.close();
     m_encoder.close();
     m_mech2d.close();
     m_armPivot.close();

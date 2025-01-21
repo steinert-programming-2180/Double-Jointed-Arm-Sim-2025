@@ -14,7 +14,7 @@ import frc.robot.subsystems.Arm;
 public class Robot extends TimedRobot {
   private final Arm m_arm = new Arm();
   // private final Joystick m_joystick = new Joystick(Constants.kJoystickPort);
-  private final PS5Controller m_joystick = new PS5Controller(0);
+  // private final PS5Controller m_joystick = new PS5Controller(0);
 
   SendableChooser<Integer> presetChooser = new SendableChooser<Integer>();
 
@@ -65,14 +65,14 @@ public class Robot extends TimedRobot {
 
     */
     
-    if (m_joystick.getL1Button()) {
-      m_arm.retractArm();
-    } else if (m_joystick.getR1Button()) {
-      m_arm.extendArm();
-    } else {
-      // Otherwise, we disable the motor.
-      m_arm.stopTelescope();
-    }
+    // if (m_joystick.getL1Button()) {
+    //   m_arm.retractArm();
+    // } else if (m_joystick.getR1Button()) {
+    //   m_arm.extendArm();
+    // } else {
+    //   // Otherwise, we disable the motor.
+    //   m_arm.stopTelescope();
+    // }
 
     switch(presetChooser.getSelected()) {
       case 0:

@@ -90,7 +90,7 @@
   {
     "name": "/Preferences/Arm Current Load",
     "type": "double",
-    "value": 8.757746158295232,
+    "value": 9.181709264078789,
     "properties": {
       "persistent": true
     }
